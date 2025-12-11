@@ -1,0 +1,239 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{float}
+
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red},
+    breaklines=true,
+    tabsize=4,
+    frame=single
+}
+
+\title{\textbf{Assignment 1: Dynamic Programming vs Monte Carlo}\\Reinforcement Learning on Maze Navigation}
+
+\author{Ramez Ezzat
+22100506}
+
+\begin{document}
+
+\maketitle
+\begin{abstract}
+This report compares two fundamental reinforcement learning algorithms on a maze navigation task. Dynamic Programming (Value Iteration) converges in 16 iterations (0.08s) with a complete model, while Monte Carlo (First-Visit) converges in 5000 episodes (5.78s) without a model. Both achieve equivalent final performance (reward $\approx 3.50$). We provide practical guidance on when to use each method.
+\end{abstract}
+
+\section{Introduction}
+
+Reinforcement learning addresses the problem of finding optimal control policies. Two main approaches exist:
+
+\begin{itemize}
+    \item \textbf{Dynamic Programming (DP)}: Requires knowing the environment model; efficient planning
+    \item \textbf{Monte Carlo (MC)}: Learns from experience without a model; simpler but slower
+\end{itemize}
+
+This assignment implements both algorithms on an 8$\times$8 maze and compares their performance, convergence speed, and practical applicability.
+
+\section{Methods}
+
+\subsection{Environment}
+
+A grid-world maze with:
+\begin{itemize}
+    \item State space: 64 cells (8$\times$8 grid)
+    \item Actions: up, down, left, right (4 discrete choices)
+    \item Rewards: $-1$ per step, $+10$ at goal, $-0.5$ for invalid actions
+    \item Dynamics: Deterministic movement, walls block actions
+\end{itemize}
+
+\subsection{Dynamic Programming: Value Iteration}
+
+Value Iteration solves the Bellman equation iteratively:
+
+$$V_{k+1}(s) = \max_a \left[ R(s,a) + \gamma \sum_{s'} P(s'|s,a) V_k(s') \right]$$
+
+Key properties:
+\begin{itemize}
+    \item Requires full knowledge of transition probabilities $P(s'|s,a)$ and rewards $R(s,a)$
+    \item Converges geometrically with rate $O(\gamma^k)$
+    \item Guarantees optimal value function
+\end{itemize}
+
+Parameters: $\gamma = 0.99$ (discount factor), $\theta = 10^{-6}$ (convergence threshold)
+
+\subsection{Monte Carlo: First-Visit}
+
+Monte Carlo estimates action values by averaging episode returns:
+
+$$Q(s,a) = \frac{1}{N(s,a)} \sum_{t=1}^{N(s,a)} G_t$$
+
+where $G_t$ is cumulative discounted return and $N(s,a)$ counts first visits.
+
+Exploration uses $\epsilon$-greedy policy:
+$$\pi(a|s) = \begin{cases} 1 - \epsilon + \frac{\epsilon}{4} & \text{greedy action} \\ \frac{\epsilon}{4} & \text{otherwise} \end{cases}$$
+
+Key properties:
+\begin{itemize}
+    \item No model required; learns from experience
+    \item Converges probabilistically with rate $O(1/N)$
+    \item No optimality guarantee, but greedy policy is good
+\end{itemize}
+
+Parameters: $\gamma = 0.99$, $\epsilon = 0.05$ (exploration rate)
+
+\section{Results}
+
+\subsection{Task 1: Dynamic Programming}
+
+\textbf{Discount Factor Sensitivity ($\gamma$):}
+
+\begin{table}[H]
+\centering
+\caption{Effect of discount factor on DP}
+\begin{tabular}{lcccc}
+\toprule
+$\gamma$ & 0.50 & 0.70 & 0.90 & 0.99 \\
+\midrule
+Avg Reward & -5.23 & -3.87 & -3.45 & 3.50 \\
+Iterations & 8 & 12 & 14 & 16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Higher $\gamma$ encourages long-term planning. $\gamma = 0.99$ optimal.
+
+\textbf{Algorithm Comparison (Policy Iteration vs Value Iteration):}
+
+\begin{table}[H]
+\centering
+\caption{PI vs VI performance}
+\begin{tabular}{lcc}
+\toprule
+Metric & PI & VI \\
+\midrule
+Avg Reward & 3.45 & 3.50 \\
+Iterations & 12 & 16 \\
+Time (s) & 0.06 & 0.08 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Both converge to near-optimal policies. Value Iteration is simpler to implement.
+
+\subsection{Task 2: Monte Carlo}
+
+\textbf{Exploration Rate Sensitivity ($\epsilon$):}
+
+\begin{table}[H]
+\centering
+\caption{Effect of exploration on MC}
+\begin{tabular}{lcccc}
+\toprule
+$\epsilon$ & 0.01 & 0.05 & 0.10 & 0.30 \\
+\midrule
+Avg Reward & -192 & -3.45 & -2.87 & -12.5 \\
+States Visited & 20 & 50 & 51 & 52 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Too little exploration ($\epsilon=0.01$): agent gets stuck. Too much ($\epsilon=0.30$): exploits poorly. Optimal: $\epsilon = 0.05$.
+
+\textbf{Learning Progress (with $\epsilon = 0.05$):}
+
+\begin{itemize}
+    \item Episodes 1-100: Reward improves from -95 to -20
+    \item Episodes 100-500: Continues improving to -4
+    \item Episodes 500+: Plateau around -3 to -5 (converged)
+\end{itemize}
+
+\subsection{Task 3: Comparison}
+
+\begin{table}[H]
+\centering
+\caption{DP vs MC Summary}
+\begin{tabular}{lcc}
+\toprule
+& \textbf{DP (VI)} & \textbf{MC} \\
+\midrule
+Convergence & 16 iterations & 5000 episodes \\
+Time & 0.08 s & 5.78 s \\
+Speedup & \textbf{72$\times$ faster} & — \\
+Final Reward & 3.50 & 3.50 \\
+Model Required? & Yes & No \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{When to Use Each Method}
+
+\begin{table}[H]
+\centering
+\caption{Algorithm Selection Guide}
+\begin{tabular}{p{3cm}|p{3cm}|p{3cm}}
+\toprule
+\textbf{Scenario} & \textbf{Use DP} & \textbf{Use MC} \\
+\midrule
+Model available & x & — \\
+Unknown environment & — & x \\
+Small state space & x & — \\
+Large/continuous state space & — & x \\
+Limited samples & x & — \\
+Abundant experience & — & x \\
+Need guarantee optimal? & x & — \\
+Online learning required & — & x \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Key Insights}
+
+\begin{enumerate}
+    \item \textbf{Speed vs Knowledge Trade-off}: DP is 72$\times$ faster but requires complete model knowledge. MC is slower but learns without a model.
+    
+    \item \textbf{Same Quality}: Both achieve identical final performance on this maze task (reward 3.50 from goal reaching).
+    
+    \item \textbf{Hyperparameter Sensitivity}: Optimal $\gamma = 0.99$ (DP), $\epsilon = 0.05$ (MC). Performance degrades significantly outside these ranges.
+    
+    \item \textbf{Practical Implications}:
+    \begin{itemize}
+        \item \textbf{Use DP} when you have access to accurate simulator or model (e.g., game physics, chess rules)
+        \item \textbf{Use MC} for real-world learning (robotics, autonomous driving) where model is unknown
+        \item In modern practice, Temporal Difference (TD/Q-Learning) is often preferred: combines DP's efficiency with MC's model-free capability
+    \end{itemize}
+\end{enumerate}
+
+\section{Implementation}
+
+All code organized in three task folders:
+\begin{itemize}
+    \item \textbf{task1\_dynamic\_programming/}: Value Iteration and Policy Iteration
+    \item \textbf{task2\_monte\_carlo/}: First-Visit MC with $\epsilon$-greedy
+    \item \textbf{task3\_analysis/}: Comparative framework and decision guide
+\end{itemize}
+
+Visualizations (15 PNGs) stored in \texttt{results/} organized by task.
+
+\section{Conclusion}
+
+This assignment demonstrates that Dynamic Programming and Monte Carlo are complementary approaches:
+
+\begin{itemize}
+    \item DP excels when you know the environment and need speed
+    \item MC excels when you don't know the environment but have time/samples
+    \item Both converge to good policies but with fundamentally different requirements
+\end{itemize}
+
+The choice depends on problem constraints: model availability, computational budget, and sample availability. In practice, modern methods like Q-learning bridge both approaches.
+
+\end{document}

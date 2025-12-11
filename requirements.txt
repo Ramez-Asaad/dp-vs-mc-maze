@@ -1,0 +1,5 @@
+gymnasium==0.28.1
+numpy>=1.23.0
+matplotlib>=3.5.0
+scipy>=1.9.0
+Box2D>=2.3.5
