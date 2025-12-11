@@ -19,8 +19,8 @@ Both algorithms are tested on a custom 8×8 grid-world maze environment with obs
 
 ```bash
 # Clone the repository
-git clone <repo-url>
-cd assignment-1
+git clone https://github.com/Ramez-Asaad/dp-vs-mc-maze
+cd dp-vs-mc-maze
 
 # Create virtual environment
 python -m venv venv
