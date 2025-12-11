@@ -12,8 +12,8 @@ Get this project running in 2 minutes.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/reinforcement-learning-maze.git
-cd reinforcement-learning-maze
+git clone https://github.com/Ramez-Asaad/dp-vs-mc-maze
+cd dp-vs-mc-maze
 ```
 
 ### 2. Create Virtual Environment

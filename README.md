@@ -8,8 +8,8 @@ A clean, well-documented implementation comparing **Dynamic Programming** and **
 
 ```bash
 # 1. Clone & setup
-git clone <repo-url>
-cd reinforcement-learning-maze
+git clone https://github.com/Ramez-Asaad/dp-vs-mc-maze
+cd cd dp-vs-mc-maze
 python -m venv venv && source venv/bin/activate
 
 # 2. Install & run

@@ -48,5 +48,7 @@ Thumbs.db
 
 # Misc
 .ipynb_checkpoints/
+GITHUB_READY.md
 *.zip
+*.pdf
 assignment 1/
